@@ -44,6 +44,34 @@ class TaskAPITestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Task.objects.count(), 2)
 
+    def test_filter_tasks_by_status(self):
+        Task.objects.create(
+            user=self.user,
+            title="Completed Task",
+            description="Done",
+            deadline=timezone.now() + timedelta(days=2),
+            status="completed",
+            priority="low"
+        )
+
+        response = self.client.get(reverse('task-list') + '?status=completed')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+
+    def test_deadline_cannot_be_past(self):
+        data = {
+            "title": "Past Task",
+            "description": "Testing past deadline",
+            "deadline": "2020-01-01T23:59:00Z",
+            "status": "pending",
+            "priority": "low"
+        }
+
+        response = self.client.post(reverse('task-list'), data)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_get_tasks(self):
         url = reverse('task-list')
         response = self.client.get(url)
@@ -73,6 +101,7 @@ class TaskAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Task.objects.count(), 0)
+
 
 class UserRegistrationTest(APITestCase):
 

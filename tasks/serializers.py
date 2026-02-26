@@ -15,6 +15,10 @@ class TaskSerializer(serializers.ModelSerializer):
         if len(value.strip()) < 3:
             raise serializers.ValidationError("Title must be at least 3 characters long.")
         return value
+    def validate_title(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Title must be at least 3 characters long.")
+        return value
 
     def validate_deadline(self, value):
         if value < timezone.now():
