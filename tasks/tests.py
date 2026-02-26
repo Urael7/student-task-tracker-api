@@ -73,3 +73,18 @@ class TaskAPITestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Task.objects.count(), 0)
+
+class UserRegistrationTest(APITestCase):
+
+    def test_user_registration(self):
+        url = reverse('register')
+        data = {
+            'username': 'newuser',
+            'email': 'newuser@test.com',
+            'password': 'newpassword123'
+        }
+
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User.objects.count(), 1)

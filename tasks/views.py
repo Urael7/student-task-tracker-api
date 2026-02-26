@@ -2,6 +2,8 @@ from rest_framework import generics
 from django.utils import timezone
 from .models import Task
 from .serializers import TaskSerializer
+from rest_framework.permissions import AllowAny
+from .serializers import UserRegisterSerializer
 
 
 class TaskListCreateView(generics.ListCreateAPIView):
@@ -31,3 +33,6 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
+class RegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    permission_classes = [AllowAny]
