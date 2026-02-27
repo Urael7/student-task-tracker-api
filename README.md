@@ -5,6 +5,7 @@ The Student Task and Deadline Tracker API is a backend system built using Django
 It allows students to manage academic tasks, track deadlines, and organize priorities securely.
 
 ## Features
+- User registration
 - User authentication using token-based authentication
 - Create, retrieve, update, and delete tasks
 - User-specific task access (ownership enforced)
@@ -13,6 +14,7 @@ It allows students to manage academic tasks, track deadlines, and organize prior
 - Overdue task detection
 - Pagination support
 - Validation for deadlines and title length
+- Field validation
 - Automated unit tests
 
 ## Tech Stack
@@ -47,6 +49,12 @@ It allows students to manage academic tasks, track deadlines, and organize prior
 ## API Endpoints
 
 Authentication:
+- POST /api/auth/login/
+
+Register
+- POST /api/auth/register/
+
+Login
 - POST /api/auth/login/
 
 Tasks:
