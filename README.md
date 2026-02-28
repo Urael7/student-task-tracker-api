@@ -6,6 +6,9 @@ It allows students to manage academic tasks, track deadlines, and organize prior
 
 ## Features
 - User registration
+- JWT Login Authentication
+- Refresh Token Support
+- Persistent Login (Frontend Local Storage)
 - User authentication using token-based authentication
 - Create, retrieve, update, and delete tasks
 - User-specific task access (ownership enforced)
@@ -17,11 +20,22 @@ It allows students to manage academic tasks, track deadlines, and organize prior
 - Field validation
 - Automated unit tests
 
+### Frontend Interface
+- Login & Registration UI
+- Persistent session handling
+- Create / Edit / Delete tasks
+- Deadline date-time picker
+- Filtering & Sorting controls
+- Priority-based color styling
+- Completed task visual indicators
+
 ## Tech Stack
 - Python
 - Django
 - Django REST Framework
+- Simple JWT
 - SQLite (default development database)
+- HTML, CSS, JavaScript (Frontend)
 
 ## Installation & Setup
 
@@ -75,6 +89,19 @@ Filtering examples:
 
 To run unit tests:
 python manage.py test
+
+## Includes automated unit tests for:
+Task creation
+Filtering
+Validation
+Authentication
+CRUD operations
+
+## Security Features
+JWT-based authentication
+User-specific data isolation
+Deadline validation enforcement
+Secure password hashing (Django default)
 
 ## Author
 Yafet Haileslassie
