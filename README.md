@@ -91,17 +91,17 @@ To run unit tests:
 python manage.py test
 
 ## Includes automated unit tests for:
-Task creation
-Filtering
-Validation
-Authentication
-CRUD operations
+- Task creation
+- Filtering
+- Validation
+- Authentication
+- CRUD operations
 
 ## Security Features
-JWT-based authentication
-User-specific data isolation
-Deadline validation enforcement
-Secure password hashing (Django default)
+- JWT-based authentication
+- User-specific data isolation
+- Deadline validation enforcement
+- Secure password hashing (Django default)
 
 ## Author
 Yafet Haileslassie
