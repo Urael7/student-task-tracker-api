@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics
 from django.utils import timezone
 from .models import Task
@@ -36,3 +37,6 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 class RegisterView(generics.CreateAPIView):
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
+
+def index(request):
+    return render(request, 'index.html')

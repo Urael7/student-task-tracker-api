@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Task Tracker</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background:#f4f6f9; }
+        h1 { margin-bottom:20px; }
+        input, select { margin:5px 0; padding:6px; width:250px; }
+        button { padding:6px 10px; margin:5px 0; cursor:pointer; }
+
+        .hidden { display:none; }
+
+        .card {
+            background:white;
+            padding:15px;
+            margin-bottom:10px;
+            border-radius:6px;
+            border-left:6px solid gray;
+        }
+
+        .high { border-left-color:red; }
+        .medium { border-left-color:orange; }
+        .low { border-left-color:green; }
+
+        .completed {
+            opacity:0.6;
+            text-decoration: line-through;
+        }
+
+        .top-bar {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .auth-switch {
+            color:blue;
+            cursor:pointer;
+            text-decoration:underline;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Student Task Tracker</h1>
+
+<!-- AUTH SECTION -->
+<div id="authSection">
+
+    <div id="loginForm">
+        <h3>Login</h3>
+        <input type="text" id="loginUsername" placeholder="Username"><br>
+        <input type="password" id="loginPassword" placeholder="Password"><br>
+        <button onclick="login()">Login</button><br>
+        <span class="auth-switch" onclick="showRegister()">Don't have account? Register</span>
+    </div>
+
+    <div id="registerForm" class="hidden">
+        <h3>Register</h3>
+        <input type="text" id="registerUsername" placeholder="Username"><br>
+        <input type="email" id="registerEmail" placeholder="Email"><br>
+        <input type="password" id="registerPassword" placeholder="Password"><br>
+        <button onclick="register()">Register</button><br>
+        <span class="auth-switch" onclick="showLogin()">Already have account? Login</span>
+    </div>
+
+</div>
+
+<!-- APP SECTION -->
+<div id="appSection" class="hidden">
+
+    <div class="top-bar">
+        <div>Logged in as <strong id="loggedUser"></strong></div>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <hr>
+
+    <h3>Create / Edit Task</h3>
+    <input type="hidden" id="editId">
+    <input type="text" id="title" placeholder="Title"><br>
+    <input type="text" id="description" placeholder="Description"><br>
+
+    <select id="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+    </select>
+
+    <select id="status">
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+    </select><br>
+
+    <input type="datetime-local" id="deadline"><br>
+
+    <button onclick="saveTask()">Save Task</button>
+
+    <hr>
+
+    <h3>Filters</h3>
+
+    <select id="filterStatus" onchange="loadTasks()">
+        <option value="">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+    </select>
+
+    <select id="sortBy" onchange="loadTasks()">
+        <option value="">Default</option>
+        <option value="deadline">Sort by Deadline</option>
+        <option value="priority">Sort by Priority</option>
+    </select>
+
+    <hr>
+
+    <h3>Your Tasks</h3>
+    <div id="taskList"></div>
+
+</div>
+
+<script>
+
+let accessToken = localStorage.getItem("accessToken");
+let refreshToken = localStorage.getItem("refreshToken");
+let currentUser = localStorage.getItem("username");
+
+if (accessToken) {
+    showApp();
+    loadTasks();
+}
+
+function showRegister(){
+    document.getElementById("loginForm").classList.add("hidden");
+    document.getElementById("registerForm").classList.remove("hidden");
+}
+
+function showLogin(){
+    document.getElementById("registerForm").classList.add("hidden");
+    document.getElementById("loginForm").classList.remove("hidden");
+}
+
+async function register(){
+    const response = await fetch('/api/register/',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            username:document.getElementById("registerUsername").value,
+            email:document.getElementById("registerEmail").value,
+            password:document.getElementById("registerPassword").value
+        })
+    });
+
+    if(response.status===201){
+        alert("Registered successfully. Logging in...");
+        document.getElementById("loginUsername").value =
+            document.getElementById("registerUsername").value;
+        document.getElementById("loginPassword").value =
+            document.getElementById("registerPassword").value;
+        showLogin();
+        login();
+    } else {
+        alert("Registration failed.");
+    }
+}
+
+async function login(){
+    const response = await fetch('/api/auth/login/',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            username:document.getElementById("loginUsername").value,
+            password:document.getElementById("loginPassword").value
+        })
+    });
+
+    const data = await response.json();
+
+    if(data.access){
+        accessToken = data.access;
+        refreshToken = data.refresh;
+
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("username",
+            document.getElementById("loginUsername").value);
+
+        showApp();
+        loadTasks();
+    } else {
+        alert("Invalid credentials");
+    }
+}
+
+function showApp(){
+    document.getElementById("authSection").classList.add("hidden");
+    document.getElementById("appSection").classList.remove("hidden");
+    document.getElementById("loggedUser").innerText =
+        localStorage.getItem("username");
+}
+
+function logout(){
+    localStorage.clear();
+    location.reload();
+}
+
+async function loadTasks(){
+    let url='/api/tasks/?';
+
+    const status=document.getElementById("filterStatus").value;
+    const sort=document.getElementById("sortBy").value;
+
+    if(status) url+=`status=${status}&`;
+    if(sort) url+=`ordering=${sort}`;
+
+    const response=await fetch(url,{
+        headers:{'Authorization':'Bearer '+accessToken}
+    });
+
+    const data=await response.json();
+    const list=document.getElementById("taskList");
+    list.innerHTML="";
+
+    data.results.forEach(task=>{
+        const div=document.createElement("div");
+        div.className=`card ${task.priority}`;
+        if(task.status==="completed") div.classList.add("completed");
+
+        div.innerHTML=`
+            <strong>${task.title}</strong><br>
+            ${task.description}<br>
+            Deadline: ${new Date(task.deadline).toLocaleString()}<br>
+            Status: ${task.status}<br>
+            Priority: ${task.priority}<br>
+            <button onclick="editTask(${task.id},'${task.title}','${task.description}','${task.priority}','${task.status}','${task.deadline}')">Edit</button>
+            <button onclick="deleteTask(${task.id})">Delete</button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function editTask(id,title,desc,priority,status,deadline){
+    document.getElementById("editId").value=id;
+    document.getElementById("title").value=title;
+    document.getElementById("description").value=desc;
+    document.getElementById("priority").value=priority;
+    document.getElementById("status").value=status;
+    document.getElementById("deadline").value=
+        deadline.slice(0,16);
+}
+
+async function saveTask(){
+    const id=document.getElementById("editId").value;
+
+    const payload={
+        title:document.getElementById("title").value,
+        description:document.getElementById("description").value,
+        priority:document.getElementById("priority").value,
+        status:document.getElementById("status").value,
+        deadline:new Date(
+            document.getElementById("deadline").value
+        ).toISOString()
+    };
+
+    let url='/api/tasks/';
+    let method='POST';
+
+    if(id){
+        url+=id+'/';
+        method='PUT';
+    }
+
+    const response=await fetch(url,{
+        method:method,
+        headers:{
+            'Content-Type':'application/json',
+            'Authorization':'Bearer '+accessToken
+        },
+        body:JSON.stringify(payload)
+    });
+
+    if(response.ok){
+        document.getElementById("editId").value="";
+        loadTasks();
+    } else {
+        alert("Error saving task");
+    }
+}
+
+async function deleteTask(id){
+    if(!confirm("Delete this task?")) return;
+
+    await fetch(`/api/tasks/${id}/`,{
+        method:'DELETE',
+        headers:{'Authorization':'Bearer '+accessToken}
+    });
+
+    loadTasks();
+}
+
+</script>
+
+</body>
+</html>
