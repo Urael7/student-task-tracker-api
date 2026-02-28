@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from rest_framework import generics
 from django.utils import timezone
-from .models import Task
-from .serializers import TaskSerializer
 from rest_framework.permissions import AllowAny
-from .serializers import UserRegisterSerializer
+from django.contrib.auth.models import User
+
+from .models import Task
+from .serializers import TaskSerializer, UserRegisterSerializer
 
 
 class TaskListCreateView(generics.ListCreateAPIView):
@@ -34,9 +35,13 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
+
+
 class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
     permission_classes = [AllowAny]
+
 
 def index(request):
     return render(request, 'index.html')
